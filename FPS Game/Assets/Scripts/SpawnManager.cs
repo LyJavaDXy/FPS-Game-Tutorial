@@ -12,6 +12,8 @@ public class SpawnManager : MonoBehaviour
 	{
 		Instance = this;
 		spawnpoints = GetComponentsInChildren<Spawnpoint>();
+		//隐藏鼠标
+		Cursor.visible = false;
 	}
 
 	public Transform GetSpawnpoint()
