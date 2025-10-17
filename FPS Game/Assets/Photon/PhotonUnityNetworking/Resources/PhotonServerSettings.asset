@@ -36,6 +36,8 @@ MonoBehaviour:
   - RPC_GetKill
   - RPC_Shoot
   - RPC_TakeDamage
+  - RPC_ModifyHealth
+  - RPC_SyncHealth
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 0
