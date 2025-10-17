@@ -181,7 +181,9 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
 
 	public void TakeDamage(float damage)
 	{
-		PV.RPC(nameof(RPC_TakeDamage), PV.Owner, damage);// 让pv的拥有者（受伤的那个玩家）执行他的RPC_TakeDamage，不是所有的玩家执行
+		PV.RPC(nameof(RPC_TakeDamage), PV.Owner, damage);// 告诉这个对象的拥有者（被打的玩家）去执行 RPC_TakeDamage()
+														// Photon 会在所有客户端上找到这个玩家的对象实例，但只有拥有者的客户端（操控这个Player的客户端）会真正执行逻辑
+
 	}
 
 	[PunRPC]
@@ -191,7 +193,7 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
 
 		healthbarImage.fillAmount = currentHealth / maxHealth;
 		
-		// 向所有人广播最新血量，所有客户端对应的那个受伤的人，要更新自己的最新血量UIworldHealthbarImage，同步状态
+		// 向所有人广播最新血量，所有客户端对应的那个受伤的人（也就是执行这个RPC_TakeDamage方法的人），要更新自己的最新血量UIworldHealthbarImage，同步状态
 		PV.RPC(nameof(RPC_SyncHealth), RpcTarget.All, currentHealth);
 
 		if(currentHealth <= 0)
