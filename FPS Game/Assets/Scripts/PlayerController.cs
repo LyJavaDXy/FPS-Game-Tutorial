@@ -191,7 +191,7 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
 
 		healthbarImage.fillAmount = currentHealth / maxHealth;
 		
-		// 向所有人广播最新血量，所有人都要更新自己的最新血量UIworldHealthbarImage，同步状态
+		// 向所有人广播最新血量，所有客户端对应的那个受伤的人，要更新自己的最新血量UIworldHealthbarImage，同步状态
 		PV.RPC(nameof(RPC_SyncHealth), RpcTarget.All, currentHealth);
 
 		if(currentHealth <= 0)
@@ -200,11 +200,28 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
 			PlayerManager.Find(info.Sender).GetKill();
 		}
 	}
-	
+	/// <summary>
+	/// 更新玩家头上的UI
+	/// 流程如下：
+	/// 🎯 当 B 射击 A：
+	///1️⃣ 客户端 B 调用
+	///	PV.RPC(nameof(RPC_TakeDamage), PV.Owner, damage);
+	///这个 RPC 发给 Player A 的客户端；
+	///所以 只有 A 本地执行 RPC_TakeDamage()；
+	///A 更新自己的血量 currentHealth。
+	///2️⃣ A 计算完血量后调用：
+	///PV.RPC(nameof(RPC_SyncHealth), RpcTarget.All, currentHealth);
+	///3️⃣ Photon 把这个 RPC 广播给所有客户端（A、B、C），
+	///并且在每个客户端中找到对应的 Player A GameObject 执行该方法。
+	///于是结果就是：
+	///每个客户端都更新自己场景里 Player A 的血条；
+	///但 Player B、C 自己的血量不会动。
+	/// </summary>
+	/// <param name="health"></param>
 	[PunRPC]
 	void RPC_SyncHealth(float health)
 	{
-		// 只更新这个 PV 对应的血条，不影响其他玩家，自己的血条自己更新currentHealth
+		// 只更新这个 PV 对应的血条（受伤的那个人），不影响其他玩家，自己的血条自己更新currentHealth
 		if (worldHealthbarImage != null)
 			worldHealthbarImage.fillAmount = health / maxHealth;
 	}
