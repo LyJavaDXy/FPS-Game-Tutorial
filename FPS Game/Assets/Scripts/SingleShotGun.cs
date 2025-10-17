@@ -25,8 +25,8 @@ public class SingleShotGun : Gun
 		ray.origin = cam.transform.position;
 		if(Physics.Raycast(ray, out RaycastHit hit))
 		{
-			hit.collider.gameObject.GetComponent<IDamageable>()?.TakeDamage(((GunInfo)itemInfo).damage);
-			PV.RPC("RPC_Shoot", RpcTarget.All, hit.point, hit.normal);
+			hit.collider.gameObject.GetComponent<IDamageable>()?.TakeDamage(((GunInfo)itemInfo).damage);//通知被射中的那个玩家，自己扣血
+			PV.RPC("RPC_Shoot", RpcTarget.All, hit.point, hit.normal);//通知所有玩家，在发射的那个位置，生成对应point点的射击特效，这样，所有玩家都看的到特效
 		}
 	}
 

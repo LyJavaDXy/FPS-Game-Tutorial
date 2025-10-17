@@ -9,6 +9,7 @@ using Hashtable = ExitGames.Client.Photon.Hashtable;
 public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
 {
 	[SerializeField] Image healthbarImage;
+	[SerializeField] Image worldHealthbarImage;
 	[SerializeField] GameObject ui;
 
 	[SerializeField] GameObject cameraHolder;
@@ -180,7 +181,7 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
 
 	public void TakeDamage(float damage)
 	{
-		PV.RPC(nameof(RPC_TakeDamage), PV.Owner, damage);
+		PV.RPC(nameof(RPC_TakeDamage), PV.Owner, damage);// 让pv的拥有者（受伤的那个玩家）执行他的RPC_TakeDamage，不是所有的玩家执行
 	}
 
 	[PunRPC]
@@ -189,12 +190,23 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
 		currentHealth -= damage;
 
 		healthbarImage.fillAmount = currentHealth / maxHealth;
+		
+		// 向所有人广播最新血量，所有人都要更新自己的最新血量UIworldHealthbarImage，同步状态
+		PV.RPC(nameof(RPC_SyncHealth), RpcTarget.All, currentHealth);
 
 		if(currentHealth <= 0)
 		{
 			Die();
 			PlayerManager.Find(info.Sender).GetKill();
 		}
+	}
+	
+	[PunRPC]
+	void RPC_SyncHealth(float health)
+	{
+		// 只更新这个 PV 对应的血条，不影响其他玩家，自己的血条自己更新currentHealth
+		if (worldHealthbarImage != null)
+			worldHealthbarImage.fillAmount = health / maxHealth;
 	}
 
 	void Die()
